@@ -1,0 +1,21 @@
+#Cutadapt:
+1. trim from 3'end
+2. indicated NEB adaptor length is 34nt. Therefore error rate -e is 0.147.
+3. -m: remove sequences less than 6nt
+4. -O: require sequence to have at least 6nt to be based paired with adaptor seq, to avoid losing real sequence information, at a cost of trimming sensitivity.
+5. -n: there might be multiple adaptors ligated to each other. Maximum allowed repeat:3
+
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -O 6 -m 6 -o 50M_input_trim.fastq 50M_input.fastq.gz -n 3 --too-short-output=50M_input_too_short.fastq --untrimmed-output=50M_input_untrimmed.fastq -e 0.147
+
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -O 6 -m 6 -o 10M_resin_trim.fastq 10M_resin.fastq.gz -n 3 -e 0.147
+
+
+#Bowtie1:
+#align rRNA, use *_rRNAunaligned.fastq file as next step:
+bowtie --best --un 10M_resin_trim_rRNAunaligned.fastq rRNA 10M_resin_trim.fastq 10M_input_trim.map
+
+##align genome, use *.map file as next step:
+
+bowtie -m 1 --best --strata --un 50M_resin_trim_genome_unaligned.fastq --max 5M_resin_trim__morealigned.fastq w3110 50M_input_trim_unalignedrRNA.fastq 50M_resin_trim_genome_aligned.map
+
+bowtie -m 1 --best --strata --un 10M_resin_trim_genome_unaligned.fastq --max 10M_resin_trim__morealigned.fastq w3110 10M_resin_trim_unalignedrRNA.fastq 10M_resin_trim_genome_aligned.map
